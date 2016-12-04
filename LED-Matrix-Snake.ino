@@ -27,7 +27,7 @@ const int height = kMatrixHeight;
 const int lengthAddition = 4;
 const rgb24 snakeColor = {0x0, 0xff, 0xff};
 const rgb24 foodColor = {0xff, 0, 0};
-const float snakeSpeed = 0.1; //seconds
+const float snakeSpeed = 0.075; //seconds
 
 int head[2] = {width / 2, height / 2};
 int food[2] = {0};
@@ -187,6 +187,7 @@ void newFood() {
 
 void endGame(bool isGameOver) {
   if (isGameOver) {
+    bool reset = false;
     char stringSnakeScore[10];
     snakeTimer.end();
     readKey = false;
@@ -194,16 +195,42 @@ void endGame(bool isGameOver) {
     notMoving = true;
     backgroundLayer.fillScreen({0, 0, 0});
     itoa(snakeScore, stringSnakeScore, 10);
-//    scrollingLayer.setMode(stopped);
-//    scrollingLayer.start("100", 1);
-//    scrollingLayer.setStartOffsetFromLeft(5);
-//    scrollingLayer.setFont(font5x7);
+    //    scrollingLayer.setMode(stopped);
+    //    scrollingLayer.start("100", 1);
+    //    scrollingLayer.setStartOffsetFromLeft(5);
+    //    scrollingLayer.setFont(font5x7);
     scrollingLayer.setColor({0xff, 0xff, 0xff});
-        backgroundLayer.setFont(font5x7);
-//        scrollingLayer.setSpeed(40);
-        backgroundLayer.drawString(2, int(height/4), {0xf0, 0xf0, 0xf0}, "Score:");
-        backgroundLayer.drawString(2, matrix.getScreenHeight() / 2, {0xf0, 0xf0, 0xf0}, stringSnakeScore);
+    backgroundLayer.setFont(font5x7);
+    //        scrollingLayer.setSpeed(40);
+    backgroundLayer.drawString(2, int(height / 4), {0xf0, 0xf0, 0xf0}, "Score:");
+    backgroundLayer.drawString(2, matrix.getScreenHeight() / 2, {0xf0, 0xf0, 0xf0}, stringSnakeScore);
+    backgroundLayer.swapBuffers();
+    while (reset == false) {
+      if (Serial.available() > 0) {
+        Serial.read();
+        reset = true;
+        head[0] = width / 2;
+        head[1] = height / 2;
+        snakeScore = 0;
+        scoreIncrement = 10;
+        for (int i = 0; i < width; i++) {
+          for (int j = 0; j < height; j++) {
+            snakeGame[j][i] = 0;
+          }
+        }
+        snakeLength = 1;
+        direction = 4; //0=N, 1=E, 2=S, 3=W
+        readKey = false;
+        readPosition = false;
+        notMoving = true;
+        gameOver = false;
+        backgroundLayer.fillScreen({0, 0, 0});
+        newFood();
+        backgroundLayer.drawPixel(head[0], head[1], snakeColor);
         backgroundLayer.swapBuffers();
+        snakeTimer.begin(updateHead, snakeSpeed * 1000000);
+      }
+    }
   }
 }
 
